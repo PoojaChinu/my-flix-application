@@ -28,6 +28,51 @@ You will need dependencies to make this project work like Passport.js, JSON web 
 
 Next, create an index.js file where the server will be located.
 
+### Creating a database
+
+To start a database use a command `mongosh` in the terminal.
+
+### Commands Purposes
+
+show dbs- To see a list of all databases
+db -To see which database MongoDB is currently set to
+use [database name] -To either create a new database or switch to a different database
+db.getCollectionNames() - To view all of the collections in your current database
+db.[collectionName].insertOne(document-to-insert) - To insert a document into a collection
+
+use [database name] -To either create a new database or switch to a different database
+Example:
+use test;
+
+db.[collectionName].insertOne(document-to-insert) - To insert a document into a collection
+{}
+Example:
+db.movie.insertOne({
+"Title":"Silence of the Lambs ",
+"Description": "A young FBI cadet must receive the help of an incarcerated and manipulative cannibal killer to help catch another serial killer.",
+"Genre": {
+"Name": "Thriller",
+"Description": "Thriller film, also known as suspense film or suspense thriller, is a broad film genre that involves excitement and suspense in the audience."
+},
+"Director": {
+"Name": "Jonathan Demme",
+"Bio": "Robert Jonathan Demme was an American director, producer, and screenwriter.",
+"Birth": "1944",
+"Death": "2017"
+},
+
+"ImagePath": "silenceofthelambs.png",
+"Featured": true
+});
+
+### Reading Records
+
+db.[collectionName].find()
+
+### Reading with Conditions
+
+db.[collectionName].find( [Condition] ) // Title of the movie, Genre , Director etc
+
 After that, you can create and enpoint and then add listern with a console log that will print on the console when the server is connected and running sucessfully or return an error if something is properly set up.
 
 If you use a mockup movie data, after starting the server, if you go to localhost:8080 on your browser you should see a list of movies displayed on your screen.

@@ -3,31 +3,29 @@ const passport = require("passport"),
   Models = require("./models.js"),
   passportJWT = require("passport-jwt");
 
-let Users = Models.User,
-  JWTStrategy = passportJWT.Strategy,
-  ExtractJWT = passportJWT.ExtractJwt;
+// local Strategy
 
 passport.use(
   new LocalStrategy(
     {
-      usernameField: "Name",
+      // This tells the password to look for the login form fields
+      usernameField: "Username",
       passwordField: "Password",
     },
-    async (name, password, callback) => {
-      console.log(`${name} ${password}`);
-      await Users.findOne({ Name: name })
+    // calls the async functiion when user try to attempt the login
+    async (username, password, callback) => {
+      console.log(`${username} ${password}`);
+      await User.findOne({ Username: username })
         .then((user) => {
           if (!user) {
-            console.log("incorrect name");
+            // if user is not found, authentication failed
+            console.log("incorrect username");
             return callback(null, false, {
-              message: "Incorrect name or password.",
+              message: "Incorrect username or password.",
             });
           }
-          if (!user.validatePassword(password)) {
-            console.log("incorrect password");
-            return callback(null, false, { message: "Incorrect password." });
-          }
-          console.log("finished");
+          console.log("finifshed");
+          // if user found, passes the user object indicating successful login
           return callback(null, user);
         })
         .catch((error) => {
@@ -39,6 +37,8 @@ passport.use(
     }
   )
 );
+
+// JWT Strategy
 
 passport.use(
   new JWTStrategy(

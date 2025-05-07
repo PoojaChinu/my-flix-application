@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-// Defining Schemas
-let movieSchema = mongoose.Schema({
+// Define cinemaSchema
+let cinemaSchema = mongoose.Schema({
   Title: { type: String, required: true },
   Description: { type: String, required: true },
   Genre: {
@@ -11,17 +11,21 @@ let movieSchema = mongoose.Schema({
   },
   Director: {
     Name: String,
-    Director: String,
+    Bio: String,
+    Birth: String,
+    Death: String,
   },
-  Image: String,
+  ImagePath: String,
+  Featured: Boolean,
 });
 
+// Defining a User Schema
+
 let userSchema = mongoose.Schema({
-  Name: { type: String, required: true },
+  Username: { type: String, required: true },
   Password: { type: String, required: true },
   Email: { type: String, required: true },
-  FavoriteMovies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Movie" }],
-  Birthday: Date,
+  Birthday: String,
 });
 
 userSchema.statics.hashPassword = (password) => {
@@ -32,11 +36,14 @@ userSchema.methods.validatePassword = function (password) {
   return bcrypt.compareSync(password, this.Password);
 };
 
-//Creating of Models
+// Creating a Model
 
-let Movie = mongoose.model("Movie", movieSchema);
-let User = mongoose.model("User", userSchema);
+// Model represnts the MongoDB collection Cinema
+let Cinema = mongoose.model("Cinema", cinemaSchema, "Cinema");
+let User = mongoose.model("User", userSchema, "User");
 
-// Exporting Models
-module.exports.Movie = Movie;
+//Exporting the Models
+
+// Model represnts the MongoDB collection
+module.exports.Cinema = Cinema;
 module.exports.User = User;

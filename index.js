@@ -1,32 +1,14 @@
 const express = require("express");
-const morgan = require("morgan");
-const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const Models = require("./models");
+const bodyParser = require("body-parser");
 const { check, validationResult } = require("express-validator");
-
-const Movies = Models.Movie;
-const Users = Models.User;
 
 const app = express();
 
-// Allow mongoose to connect to database locally
-// mongoose.connect("mongodb://localhost:27017/db", {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
+const { Cinema, User } = require("./models");
 
-// Allow mongoose to connect to databse remotely
-mongoose.connect(process.env.CONNECTION_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-// express static function
-app.use(express.static("public"));
-
-// Morgan(Middleware) function
-app.use(morgan("common"));
+//Allow mongoose to connect to database locally
+mongoose.connect("mongodb://127.0.0.1:27017/Cinema");
 
 // attach bodyparser
 app.use(bodyParser.json());
@@ -34,22 +16,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // CORS in Express
 const cors = require("cors");
-let allowedOrigins = [
-  "http://localhost:8080",
-  "http://localhost:1234",
-  "http://localhost:4200",
-  "https://pooja-porwal-myflix.netlify.app",
-  "https://poojachinu.github.io",
-];
 
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
-        // If a specific origin isn’t found on the list of allowed origins
+        // if a specific origin is not found on the list of allowed origins
         let message =
-          "The CORS policy for this application doesn’t allow access from origin " +
+          "The CORS policy for this application does not allow access from origin" +
           origin;
         return callback(new Error(message), false);
       }
@@ -58,40 +33,22 @@ app.use(
   })
 );
 
-// Authentication
-let auth = require("./auth")(app);
-const passport = require("passport");
-require("./passport");
-
-// Creating express routing syntax using Get method
-
-app.get("/documentation", (req, res) => {
-  res.sendFile("public/documentation.html", { root: __dirname });
-});
-
-app.get("/", (req, res) => {
-  res.send("Welcome to my App!");
-});
-
 // Creating API endpoints
 
-/**
- * @function
- * @name getAllMovies
- * @description Get all movies
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @throws {Error} If there is an error while retrieving the movies
- * @returns {Object[]} List of movies
- */
+// Get all list of Cinema
 app.get(
-  "/movies",
+  "/cinema",
   passport.authenticate("jwt", { session: false }),
+  //   passport.authenticate("jwt", { session: false }),
+  // It's an async function to handle the request
   async (req, res) => {
-    await Movies.find()
+    // It uses the Mongose model to query the database and saving it in a variable
+    await Cinema.find()
       .then((movies) => {
+        // If the query is successful, Sends back 200 OK status
         res.status(200).json(movies);
       })
+      // if there is an error querying a database, it logs the error
       .catch((err) => {
         console.error(err);
         res.status(500).send("Error: " + err);
@@ -99,143 +56,97 @@ app.get(
   }
 );
 
-/**
- * @function
- * @name getMovieByTitle
- * @description Get a movie by title
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @throws {Error} If there is an error while retrieving the movie
- * @returns {Object} Movie details
- */
+// Get movie by Title
 app.get(
   "/movies/:title",
-  passport.authenticate("jwt", { session: false }),
+  // It is to handle the request
   async (req, res) => {
-    await Movies.findOne({ Title: req.params.title })
+    // It uses the Mongoose model to query the database
+    await Cinema.findOne({ Title: req.params.title })
       .then((movie) => {
-        res.json(movie);
+        // if query is successful,  Sends back 200 OK status and saving it in a variable
+        res.status(200).json(movie);
       })
+      // if there is an error querying in the database, it logs an error
       .catch((err) => {
         console.error(err);
-        res.status(500).send("Error: " + err);
+        res.status(500).send("Error:" + err);
       });
   }
 );
 
-/**
- * @function
- * @name getGenreByName
- * @description Get a genre by name
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @throws {Error} If there is an error while retrieving the genre
- * @returns {Object} Genre details
- */
+// Get movie by Genre Name
 app.get(
-  "/movies/genre/:genreName",
-  passport.authenticate("jwt", { session: false }),
+  "/cinema/genre/:genreName",
+  // It is to handle the request
   async (req, res) => {
-    await Movies.findOne({ "Genre.Name": req.params.genreName })
+    // it use mongoose model to query the database and saving it in a varibale
+    await Cinema.findOne({ "Genre.Name": req.params.genreName })
       .then((movie) => {
-        res.json(movie.Genre);
+        // if the query is successful, sends back 200 OK status and saving it in a varibale
+        res.status(200).json(movie);
       })
+      // if there is an error querying in the database, it logs an error
       .catch((err) => {
         console.error(err);
-        res.status(500).send("Error: " + err);
+        res.status(500).send("Error:" + err);
       });
   }
 );
 
-/**
- * @function
- * @name getDirectorByName
- * @description Get a director by name
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @throws {Error} If there is an error while retrieving the director
- * @returns {Object} Director details
- */
-
+// Get movie by Director Name
 app.get(
-  "/movies/director/:directorName",
-  passport.authenticate("jwt", { session: false }),
+  "/cinema/director/:directorName",
+  // It is to handle the request
   async (req, res) => {
-    await Movies.findOne({ "Director.Name": req.params.directorName })
+    // it uses Mongose model to query the database and saving it in a variable
+    await Cinema.findOne({ "Director.Name": req.params.directorName })
       .then((movie) => {
-        res.json(movie.Director);
+        // if the query is successful, send back 200 OK status and saving it in a varibale
+        res.status(200).json(movie);
       })
+      // if there is an error querying a database, it logs an error
       .catch((err) => {
         console.error(err);
-        res.status(500).send("Error: " + err);
+        res.status(500).send("Error:" + err);
       });
   }
 );
 
-/**
- * @function
- * @name getAllUsers
- * @description Retrieves user list
- * @throws {Error} If there is an error while creating the user
- * @returns {Object} JSON response containing the list of users
- */
+// Get All Users
 app.get(
   "/users",
-  passport.authenticate("jwt", { session: false }),
+  // It is to handle the request
   async (req, res) => {
-    await Users.find()
-      .then((users) => {
-        res.status(200).json(users);
+    // It uses mongose model to query the databse and saving it into a variable
+    await User.find()
+      .then((movie) => {
+        // if the query is successful, send back 200
+        res.status(200).json(movie);
       })
+      // if there is an error querying in a database, it logs an error
       .catch((err) => {
         console.error(err);
-        res.status(500).send("Error: " + err);
+        res.status(500).send("Error" + err);
       });
   }
 );
 
-/**
- * @function
- * @name createUser
- * @description Create a new user
- * @param {Object} req - request object containing Name, Birthday, Password and Email
- * @throws {Error} If there is an error while creating the user
- * @returns {Object} JSON response containing the new user details Name, Birthday, Password and Email
- */
+// Create User
 app.post(
   "/users",
-  [
-    //minimum value of 5 characters are only allowed
-    check("Name", "Name is required (min length 5)").isLength({ min: 5 }),
-    check(
-      "Name",
-      "Name contains non alphanumeric characters - not allowed."
-    ).isAlphanumeric(),
-    check("Email", "Email does not appear to be valid").isEmail(),
-    check("Password", "Password is required").not().isEmpty(),
-    check(
-      "Birthday",
-      "Birthday does not appear to be valid (only date allowed)"
-    ).isDate(),
-  ],
+  // It is to handle the request
   async (req, res) => {
-    // check the validation object for errors
-    let errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array() });
-    }
-
-    let hashedPassword = Users.hashPassword(req.body.Password);
-    await Users.findOne({ Name: req.body.Name }) // Search to see if a user with the requested username already exists
+    //it uses the moongoose model to query the database and saving it to a varibale
+    await User.findOne({ Username: req.body.Username })
       .then((user) => {
+        // if the user is found, send a response that it already exists
         if (user) {
-          //If the user is found, send a response that it already exists
-          return res.status(400).send(req.body.Name + " already exists");
+          return res.status(400).send(req.body.Username + "already exists");
         } else {
-          Users.create({
-            Name: req.body.Name,
-            Password: hashedPassword,
+          User.create({
+            Username: req.body.Username,
+            Password: req.body.Password,
             Birthday: req.body.Birthday,
             Email: req.body.Email,
           })
@@ -244,7 +155,7 @@ app.post(
             })
             .catch((error) => {
               console.error(error);
-              res.status(500).send("Error: " + error);
+              res.status(500).send("Error:" + error);
             });
         }
       })
@@ -255,170 +166,59 @@ app.post(
   }
 );
 
-/**
- * @function
- * @name updateUser
- * @description Update a user's info by username
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @throws {Error} If there is an error while updating the user
- * @returns {Object} JSON response containing the updated user
- */
+// update User info
+
 app.put(
-  "/users/:id",
-  // Validation logic here for request
-  //you can either use a chain of methods like .not().isEmpty()
-  //which means "opposite of isEmpty" in plain english "is not empty"
-  //or use .isLength({min: 5}) which means
-  //minimum value of 5 characters are only allowed
-  [
-    check("Name", "Name is required (min length 5)").isLength({ min: 5 }),
-    check(
-      "Name",
-      "Name contains non alphanumeric characters - not allowed."
-    ).isAlphanumeric(),
-    check(
-      "Birthday",
-      "Birthday does not appear to be valid (only date allowed)"
-    ).isDate(),
-    check("Email", "Email does not appear to be valid").isEmail(),
-    check("Password", "Password is required").not().isEmpty(),
-  ],
-  passport.authenticate("jwt", { session: false }),
+  "/users/:Username",
+  // it handles the request
   async (req, res) => {
-    // check the validation object for errors
-    let errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array() });
-    }
-
-    let hashedPassword = Users.hashPassword(req.body.Password);
-
-    await Users.findOneAndUpdate(
-      { _id: req.params.id },
+    // it uses mongoose model to query the database and saving it to a varibale
+    await User.findOneAndUpdate(
+      { Username: req.params.Username },
       {
         $set: {
-          Name: req.body.Name,
+          Username: req.body.Username,
           Birthday: req.body.Birthday,
           Email: req.body.Email,
-          Password: hashedPassword,
+          Password: req.body.password,
         },
-      },
-      { new: true }
-    ) // This line makes sure that the updated document is returned
-      .then((updatedUser) => {
-        res.json(updatedUser);
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(500).send("Error: " + err);
-      });
-  }
-);
-
-/**
- * @function
- * @name addFavoriteMovie
- * @description Add a movie to a user's list of favorites
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @throws {Error} If there is an error while adding the movie
- * @returns {Object} JSON response containing the updated user
- */
-app.patch(
-  "/users/:userID/movies/:MovieID",
-  passport.authenticate("jwt", { session: false }),
-  async (req, res) => {
-    const user = await Users.findOne({ _id: req.params.userID });
-
-    if (user.FavoriteMovies.includes(req.params.MovieID)) {
-      console.log("Movie is already present in favorites");
-
-      res.json(user);
-    } else {
-      await Users.findOneAndUpdate(
-        { _id: req.params.userID },
-        {
-          $push: { FavoriteMovies: req.params.MovieID },
-        },
-        { new: true }
-      )
-        // This line makes sure that the updated document is returned
-        .then((updatedUser) => {
-          res.json(updatedUser);
-        })
-        .catch((err) => {
-          console.error(err);
-          res.status(500).send("Error: " + err);
-        });
-    }
-  }
-);
-
-/**
- * @function
- * @name deleteFavoriteMovie
- * @description Delete a movie from a user's list of favorites
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @throws {Error} If there is an error while deleting the movie
- * @returns {Object} JSON response containing the updated user
- */
-app.delete(
-  "/users/:userID/favorites/:movieID",
-  passport.authenticate("jwt", { session: false }),
-  async (req, res) => {
-    await Users.findOneAndUpdate(
-      { _id: req.params.userID },
-      {
-        $pull: { FavoriteMovies: req.params.movieID },
       },
       { new: true }
     )
       .then((updatedUser) => {
         res.json(updatedUser);
       })
-      .catch((error) => {
-        console.error(error);
-        res.status(500).send("Error: " + error);
+      .catch((err) => {
+        console.err(err);
+        res.status(500).send("Error:" + err);
       });
   }
 );
 
-/**
- * @function
- * @name deleteUser
- * @description Delete a user by username
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @throws {Error} If there is an error while deleting the user
- * @returns {String} Success message
- */
+//delete User
+
 app.delete(
-  "/users/:userID",
-  passport.authenticate("jwt", { session: false }),
+  "/users/:Username",
+  // it handles the request
   async (req, res) => {
-    await Users.findOneAndDelete({ _id: req.params.userID })
+    await User.findOneAndDelete({ Username: req.params.Username })
       .then((user) => {
         if (!user) {
           res
             .status(400)
-            .send({ result: `UserID: ${req.params.userID} was not found` });
+            .send({ result: `Username: ${req.params.Username} was not found` });
         } else {
           res
             .status(200)
-            .send({ result: `UserID: ${req.params.userID} was deleted` });
+            .send({ result: `Username: ${req.params.Username} was deleted` });
         }
       })
       .catch((err) => {
         console.error(err);
-        res.status(500).send("Error: " + err);
+        res.status(500).send("Error:" + err);
       });
   }
 );
-
-//Error Handling
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
